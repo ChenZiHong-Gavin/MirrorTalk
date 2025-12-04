@@ -1,5 +1,4 @@
 import base64
-import imghdr
 from typing import List, Optional, Dict, Any
 from openai import OpenAI
 
@@ -58,11 +57,7 @@ class VLMProvider():
             try:
                 # 编码图片
                 base64_image = self.encode_image(image_file)
-                
-                # 检测 MIME 类型
-                image_file.seek(0)
-                image_type = imghdr.what(image_file)
-                mime_type = f"image/{image_type}" if image_type else "image/jpeg"
+                mime_type = getattr(image_file, "type", None) or "image/jpeg"
                 
                 # 追加图片
                 content.append({
