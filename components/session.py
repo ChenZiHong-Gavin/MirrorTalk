@@ -73,3 +73,5 @@ def init_session_state():
             st.session_state.assistant_avatar = f"data:image/png;base64,{_img_b64('resources/images/assistant.png')}"
         except Exception:
             st.session_state.assistant_avatar = "🤖"
+    if "runtime_overrides" not in st.session_state:
+        st.session_state.runtime_overrides = {}

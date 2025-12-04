@@ -2,7 +2,7 @@ import streamlit as st
 import random
 from .assets import _img_b64
 from utils.vocab_book import remove_item, list_items
-from components.env import get_runtime_config, save_env_overrides
+from components.env import get_runtime_config, save_user_overrides
 
 def inject_styles():
     st.set_page_config(page_title="语镜 MirrorTalk", page_icon="🪞", layout="wide", initial_sidebar_state="collapsed")
@@ -129,7 +129,7 @@ def show_settings_dialog():
     cols = st.columns([1,1])
     with cols[0]:
         if st.button("保存", type="primary"):
-            save_env_overrides(base_url.strip() or None, api_key.strip() or None, model_name.strip() or None)
+            save_user_overrides(base_url.strip() or None, api_key.strip() or None, model_name.strip() or None)
             st.success("已保存并应用")
             st.session_state.settings_dialog_open = False
             st.rerun()
@@ -204,7 +204,6 @@ def render_sidebar():
             st.session_state.support_mode = st.selectbox("支持风格", ["温柔鼓励", "中性指导", "真实还原"], index=0)
             st.session_state.show_translation = st.checkbox("显示助理回复的母语译文", value=st.session_state.show_translation)
             st.session_state.show_corrections = st.checkbox("给出我的表达改进建议", value=st.session_state.show_corrections)
-            st.session_state.tts_voice = st.selectbox("语音播报", ["alloy", "aria", "verse"], index=0)
             if st.session_state.get("coser"):
                 st.session_state.coser.update_settings(
                     target_language=st.session_state.target_language,

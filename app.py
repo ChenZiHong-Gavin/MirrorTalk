@@ -8,10 +8,10 @@ from components.flow import run_analysis, run_chat
 
 inject_styles()
 load_env_file()
+init_session_state()
 base_url, api_key, model_name = get_runtime_config()
 vlm_provider = VLMProvider(base_url=base_url, api_key=api_key, model_name=model_name)
 scene_analyzer = SceneAnalyzer(vlm_provider)
-init_session_state()
 repo_url = "https://github.com/ChenZiHong-Gavin/MirrorTalk"
 dev_url = "https://github.com/ChenZiHong-Gavin"
 render_home(repo_url, dev_url)

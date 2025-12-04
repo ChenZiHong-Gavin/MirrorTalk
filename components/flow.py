@@ -3,6 +3,7 @@ import hashlib
 import json
 import io
 from .assets import _audio_b64, _audio_b64_bytes
+from utils.gender import infer_gender_from_texts, map_gender_to_voice
 from utils.vocab_book import add_item
 
 def run_analysis(scene_analyzer, uploaded_file):
@@ -24,6 +25,11 @@ def run_analysis(scene_analyzer, uploaded_file):
                     with open(st.session_state.preset_image_path, "rb") as file_obj:
                         analysis = scene_analyzer.analyze(file_obj)
                 st.session_state.scene_context = analysis.scene_description
+                try:
+                    gender = infer_gender_from_texts([getattr(analysis, "subject_type", None), getattr(analysis, "subject_description", None)])
+                    st.session_state.tts_voice = map_gender_to_voice(gender)
+                except Exception:
+                    pass
                 coser = scene_analyzer.create_cosplay_session(
                     analysis,
                     target_language=st.session_state.target_language,
@@ -31,6 +37,15 @@ def run_analysis(scene_analyzer, uploaded_file):
                     difficulty=st.session_state.difficulty_level,
                     support_mode=st.session_state.support_mode,
                 )
+                try:
+                    gender2 = infer_gender_from_texts([
+                        getattr(coser, "persona", None) and getattr(coser.persona, "role", None),
+                        getattr(coser, "persona", None) and getattr(coser.persona, "background", None)
+                    ])
+                    if gender2 != "unknown":
+                        st.session_state.tts_voice = map_gender_to_voice(gender2)
+                except Exception:
+                    pass
                 greeting = coser.greet()
                 st.session_state.messages.append({"role": "assistant", "content": greeting})
                 st.session_state.coser = coser
@@ -39,6 +54,9 @@ def run_analysis(scene_analyzer, uploaded_file):
             st.error(f"分析失败: {e}")
 
 def run_chat(vlm_provider):
+    if st.session_state.get("pending_toast"):
+        st.toast(st.session_state.pending_toast, icon="🌱")
+        st.session_state.pending_toast = None
     if not st.session_state.show_home and st.session_state.scene_context:
         box = st.container(border=True)
         with box:
@@ -220,6 +238,10 @@ def run_chat(vlm_provider):
                             pass
                 try:
                     eval_raw = st.session_state.coser.evaluate_quality(st.session_state.scene_context, user_input)["raw"]
+                    if "```json" in eval_raw:
+                        eval_raw = eval_raw.split("```json")[1].split("```")[0].strip()
+                    elif "```" in eval_raw:
+                        eval_raw = eval_raw.split("```")[0].strip()
                     data = json.loads(eval_raw)
                     prev_score = st.session_state.courage_score
                     delta = int(data.get("delta", 0))
@@ -230,9 +252,9 @@ def run_chat(vlm_provider):
                     msg = f"成长值 {prev_score} → {st.session_state.courage_score}（{delta_text}）"
                     if note:
                         msg += f" · {note}"
-                    st.toast(msg, icon="🌱")
-                except Exception:
-                    pass
+                    st.session_state.pending_toast = msg
+                except Exception as e:
+                    print(f"成长值计算出错: {e}")
             finally:
                 st.session_state.pending_user_input = None
                 st.session_state.is_processing = False

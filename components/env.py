@@ -1,4 +1,5 @@
 import os
+import streamlit as st
 
 def load_env_file(path: str = ".env"):
     if not os.path.exists(path):
@@ -20,62 +21,28 @@ def load_env_file(path: str = ".env"):
         pass
 
 def get_runtime_config():
+    uid = st.session_state.get("user_id")
+    overrides = st.session_state.get("runtime_overrides", {})
+    if uid and uid in overrides:
+        cfg = overrides[uid]
+        base_url = cfg.get("base_url") or os.environ.get("BASE_URL") or os.environ.get("OPENAI_BASE_URL")
+        api_key = cfg.get("api_key") or os.environ.get("API_KEY") or os.environ.get("OPENAI_API_KEY") or "none"
+        model_name = cfg.get("model_name") or os.environ.get("MODEL_NAME") or "gpt-4o-mini"
+        return base_url, api_key, model_name
     base_url = os.environ.get("BASE_URL") or os.environ.get("OPENAI_BASE_URL")
     api_key = os.environ.get("API_KEY") or os.environ.get("OPENAI_API_KEY") or "none"
     model_name = os.environ.get("MODEL_NAME") or "gpt-4o-mini"
     return base_url, api_key, model_name
 
-def save_env_overrides(base_url: str = None, api_key: str = None, model_name: str = None, path: str = ".env"):
-    data = {}
-    orig_lines = []
-    try:
-        if os.path.exists(path):
-            with open(path, "r", encoding="utf-8") as f:
-                orig_lines = f.readlines()
-                for line in orig_lines:
-                    s = line.rstrip("\n")
-                    if not s or s.strip().startswith("#") or "=" not in s:
-                        continue
-                    k, v = s.split("=", 1)
-                    data[k.strip()] = v.strip()
-    except Exception:
-        orig_lines = []
-        data = {}
-    if base_url:
-        data["BASE_URL"] = base_url
-        data["OPENAI_BASE_URL"] = base_url
-        os.environ["BASE_URL"] = base_url
-        os.environ["OPENAI_BASE_URL"] = base_url
-    if api_key:
-        data["API_KEY"] = api_key
-        data["OPENAI_API_KEY"] = api_key
-        os.environ["API_KEY"] = api_key
-        os.environ["OPENAI_API_KEY"] = api_key
-    if model_name:
-        data["MODEL_NAME"] = model_name
-        os.environ["MODEL_NAME"] = model_name
-    try:
-        keys = {"BASE_URL", "OPENAI_BASE_URL", "API_KEY", "OPENAI_API_KEY", "MODEL_NAME"}
-        updated = set()
-        out_lines = []
-        for line in orig_lines:
-            s = line.rstrip("\n")
-            if not s or s.strip().startswith("#") or "=" not in s:
-                out_lines.append(line)
-                continue
-            k, _ = s.split("=", 1)
-            kk = k.strip()
-            if kk in keys and kk in data:
-                out_lines.append(f"{kk}={data[kk]}\n")
-                updated.add(kk)
-            else:
-                out_lines.append(line)
-        for kk in keys:
-            if kk in data and kk not in updated:
-                out_lines.append(f"{kk}={data[kk]}\n")
-        if not orig_lines and not os.path.exists(path):
-            out_lines = [f"{kk}={data[kk]}\n" for kk in keys if kk in data]
-        with open(path, "w", encoding="utf-8") as f:
-            f.writelines(out_lines)
-    except Exception:
-        pass
+def save_user_overrides(base_url: str = None, api_key: str = None, model_name: str = None):
+    uid = st.session_state.get("user_id", "default")
+    overrides = st.session_state.get("runtime_overrides", {})
+    cur = overrides.get(uid, {})
+    if base_url is not None:
+        cur["base_url"] = base_url
+    if api_key is not None:
+        cur["api_key"] = api_key
+    if model_name is not None:
+        cur["model_name"] = model_name
+    overrides[uid] = cur
+    st.session_state.runtime_overrides = overrides
