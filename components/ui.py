@@ -1,7 +1,7 @@
 import streamlit as st
 import random
 from .assets import _img_b64
-from utils.vocab_book import remove_item
+from utils.vocab_book import remove_item, list_items
 
 def inject_styles():
     st.set_page_config(page_title="语镜 MirrorTalk", page_icon="🪞", layout="wide", initial_sidebar_state="collapsed")
@@ -28,7 +28,7 @@ def inject_styles():
 
 @st.dialog("词汇本", width="large")
 def show_vocab_dialog():
-    items = st.session_state.get("vocab_book") or []
+    items = list_items(st.session_state.get("user_id", "default"))
     st.markdown(
         """
         <style>
@@ -74,7 +74,7 @@ def show_vocab_dialog():
                     st.markdown(f"<div class='vocab-list-row'><strong>{term}</strong>（{lang}） — {explanation}；例句：{example}</div>", unsafe_allow_html=True)
                 with cols[1]:
                     if st.button("学会了", key=f"rm_vocab_list_{i}_{term}"):
-                        if remove_item(term, lang):
+                        if remove_item(term, lang, st.session_state.get("user_id", "default")):
                             st.session_state.vocab_book = [x for x in st.session_state.vocab_book if not (x.get("term") == term and x.get("target_language") == lang)]
                             st.success(f"已移除：{term}")
     with tabs[1]:
@@ -104,7 +104,7 @@ def show_vocab_dialog():
             action_cols = st.columns([3,1])
             with action_cols[1]:
                 if st.button("学会了", key=f"rm_vocab_single_{idx}_{term}"):
-                    if remove_item(term, lang):
+                    if remove_item(term, lang, st.session_state.get("user_id", "default")):
                         st.session_state.vocab_book = [x for x in st.session_state.vocab_book if not (x.get("term") == term and x.get("target_language") == lang)]
                         st.success(f"已移除：{term}")
                         st.session_state.vocab_current_index = min(idx, max(0, len(st.session_state.vocab_book) - 1))

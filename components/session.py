@@ -1,7 +1,17 @@
 import streamlit as st
+import uuid
 from utils.vocab_book import list_items
 
 def init_session_state():
+    if "user_id" not in st.session_state:
+        params = st.query_params
+        uid = params.get("uid")
+        if isinstance(uid, list):
+            uid = uid[0] if uid else None
+        if not uid:
+            uid = uuid.uuid4().hex
+            st.query_params["uid"] = uid
+        st.session_state.user_id = uid
     if "messages" not in st.session_state:
         st.session_state.messages = []
     if "scene_context" not in st.session_state:
@@ -41,7 +51,7 @@ def init_session_state():
     if "tts_voice" not in st.session_state:
         st.session_state.tts_voice = "alloy"
     if "vocab_book" not in st.session_state:
-        st.session_state.vocab_book = list_items()
+        st.session_state.vocab_book = list_items(st.session_state.user_id)
     if "input_locked" not in st.session_state:
         st.session_state.input_locked = False
     if "is_processing" not in st.session_state:

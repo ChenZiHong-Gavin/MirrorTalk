@@ -184,7 +184,7 @@ def run_chat(vlm_provider):
                                             st.caption(f"· {term} — {explanation}；例句：{example}")
                                         with row[1]:
                                             if st.button("加入词汇本", key=f"add_vocab_{idx}_{term}"):
-                                                ok = add_item(term, explanation, example, st.session_state.target_language)
+                                                ok = add_item(term, explanation, example, st.session_state.target_language, st.session_state.user_id)
                                                 if ok:
                                                     st.session_state.vocab_book.append({
                                                         "term": term,
@@ -255,7 +255,7 @@ def run_chat(vlm_provider):
                             st.caption(f"· {term} — {explanation}；例句：{example}")
                         with row[1]:
                             if st.button("加入词汇本", key=f"add_vocab_prev_{idx}_{term}"):
-                                ok = add_item(term, explanation, example, st.session_state.target_language)
+                                ok = add_item(term, explanation, example, st.session_state.target_language, st.session_state.user_id)
                                 if ok:
                                     st.session_state.vocab_book.append({
                                         "term": term,
