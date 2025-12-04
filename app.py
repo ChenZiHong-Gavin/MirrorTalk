@@ -20,6 +20,10 @@ uploaded_file = render_scenes()
 run_analysis(scene_analyzer, uploaded_file)
 run_chat(vlm_provider)
 from components.ui import show_vocab_dialog
+from components.ui import show_settings_dialog
 if st.session_state.get("vocab_dialog_open", False):
     show_vocab_dialog()
     st.session_state.vocab_dialog_open = False
+if st.session_state.get("settings_dialog_open", False):
+    show_settings_dialog()
+    st.session_state.settings_dialog_open = False

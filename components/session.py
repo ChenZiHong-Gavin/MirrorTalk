@@ -61,6 +61,8 @@ def init_session_state():
         st.session_state.pending_user_input = None
     if "vocab_dialog_open" not in st.session_state:
         st.session_state.vocab_dialog_open = False
+    if "settings_dialog_open" not in st.session_state:
+        st.session_state.settings_dialog_open = False
     if "user_avatar" not in st.session_state:
         try:
             st.session_state.user_avatar = f"data:image/png;base64,{_img_b64('resources/images/user.png')}"

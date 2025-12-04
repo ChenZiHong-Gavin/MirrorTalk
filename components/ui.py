@@ -2,6 +2,7 @@ import streamlit as st
 import random
 from .assets import _img_b64
 from utils.vocab_book import remove_item, list_items
+from components.env import get_runtime_config, save_env_overrides
 
 def inject_styles():
     st.set_page_config(page_title="语镜 MirrorTalk", page_icon="🪞", layout="wide", initial_sidebar_state="collapsed")
@@ -25,6 +26,15 @@ def inject_styles():
         """,
         unsafe_allow_html=True,
         )
+    st.markdown(
+        """
+        <style>
+        div[data-testid="stSidebar"] { position: relative; }
+        .sidebar-gear-wrap { position:absolute; left:12px; right:12px; bottom:12px; }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
 @st.dialog("词汇本", width="large")
 def show_vocab_dialog():
@@ -110,6 +120,23 @@ def show_vocab_dialog():
                         st.session_state.vocab_current_index = min(idx, max(0, len(st.session_state.vocab_book) - 1))
             
 
+@st.dialog("全局设置", width="medium")
+def show_settings_dialog():
+    base_url_default, api_key_default, model_name_default = get_runtime_config()
+    base_url = st.text_input("Base URL", value=base_url_default or "")
+    api_key = st.text_input("API Key", value=(api_key_default if api_key_default != "none" else ""), type="password")
+    model_name = st.text_input("Model Name", value=model_name_default or "gpt-4o-mini")
+    cols = st.columns([1,1])
+    with cols[0]:
+        if st.button("保存", type="primary"):
+            save_env_overrides(base_url.strip() or None, api_key.strip() or None, model_name.strip() or None)
+            st.success("已保存并应用")
+            st.session_state.settings_dialog_open = False
+            st.rerun()
+    with cols[1]:
+        if st.button("取消"):
+            st.session_state.settings_dialog_open = False
+
 def render_home(repo_url: str = "https://github.com/ChenZiHong-Gavin/MirrorTalk", dev_url: str = "https://github.com/ChenZiHong-Gavin"):
     hero_cols = st.columns([1, 3, 1])
     with hero_cols[1]:
@@ -187,6 +214,10 @@ def render_sidebar():
                 )
             if st.button("打开词汇本", use_container_width=True):
                 st.session_state.vocab_dialog_open = True
+            st.markdown("<div class='sidebar-gear-wrap'>", unsafe_allow_html=True)
+            if st.button("⚙️ 设置", key="open_settings", use_container_width=True):
+                st.session_state.settings_dialog_open = True
+            st.markdown("</div>", unsafe_allow_html=True)
 
 def render_scenes():
     uploaded_file = None
