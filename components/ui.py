@@ -295,7 +295,7 @@ def render_scenes():
             f"""
             <div class='scene-card'>
                 <div class='scene-card-title'>🐈 与晒太阳的小猫交流</div>
-                <div class='scene-card-desc'>遇到晒太阳的小猫，跨越物种障碍与小猫互动。</div>
+                <div class='scene-card-desc'>遇到晒太阳的小猫，跨越物种与小猫互动。</div>
                 <div class='scene-card-img'>
                     <img src='data:image/png;base64,{scene3_b64}' alt='与晒太阳的小猫交流' style='width:100%; height:100%; object-fit:cover; border-radius:8px;'>
                 </div>
