@@ -1,6 +1,7 @@
 import streamlit as st
 import uuid
 from utils.vocab_book import list_items
+from .assets import _img_b64
 
 def init_session_state():
     if "user_id" not in st.session_state:
@@ -60,3 +61,13 @@ def init_session_state():
         st.session_state.pending_user_input = None
     if "vocab_dialog_open" not in st.session_state:
         st.session_state.vocab_dialog_open = False
+    if "user_avatar" not in st.session_state:
+        try:
+            st.session_state.user_avatar = f"data:image/png;base64,{_img_b64('resources/images/user.png')}"
+        except Exception:
+            st.session_state.user_avatar = "🧑"
+    if "assistant_avatar" not in st.session_state:
+        try:
+            st.session_state.assistant_avatar = f"data:image/png;base64,{_img_b64('resources/images/assistant.png')}"
+        except Exception:
+            st.session_state.assistant_avatar = "🤖"

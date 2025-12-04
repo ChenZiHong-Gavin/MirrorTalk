@@ -7,29 +7,33 @@ from utils.vocab_book import add_item
 
 def run_analysis(scene_analyzer, uploaded_file):
     if (not st.session_state.show_home) and ((uploaded_file or st.session_state.preset_image_path) and not st.session_state.scene_context):
-        with st.spinner("正在通过「语镜」分析场景..."):
-            center_cols = st.columns([1, 1, 1])
-            with center_cols[1]:
-                img_to_show = uploaded_file if uploaded_file else st.session_state.preset_image_path
-                st.image(img_to_show, caption="当前镜像场景", width=400)
-                if uploaded_file:
-                    st.session_state.scene_image_bytes = uploaded_file.getvalue()
-                else:
-                    st.session_state.scene_image_bytes = None
+        center_cols = st.columns([1, 1, 1])
+        with center_cols[1]:
+            img_to_show = uploaded_file if uploaded_file else st.session_state.preset_image_path
+            st.image(img_to_show, caption="当前镜像场景", width=400)
+            if uploaded_file:
+                st.session_state.scene_image_bytes = uploaded_file.getvalue()
+            else:
+                st.session_state.scene_image_bytes = None
         try:
-            file_obj = uploaded_file if uploaded_file else open(st.session_state.preset_image_path, "rb")
-            analysis = scene_analyzer.analyze(file_obj)
-            st.session_state.scene_context = analysis.scene_description
-            coser = scene_analyzer.create_cosplay_session(
-                analysis,
-                target_language=st.session_state.target_language,
-                native_language=st.session_state.native_language,
-                difficulty=st.session_state.difficulty_level,
-                support_mode=st.session_state.support_mode,
-            )
-            greeting = coser.greet()
-            st.session_state.messages.append({"role": "assistant", "content": greeting})
-            st.session_state.coser = coser
+            with st.spinner("正在分析照片..."):
+                if uploaded_file:
+                    file_obj = uploaded_file
+                    analysis = scene_analyzer.analyze(file_obj)
+                else:
+                    with open(st.session_state.preset_image_path, "rb") as file_obj:
+                        analysis = scene_analyzer.analyze(file_obj)
+                st.session_state.scene_context = analysis.scene_description
+                coser = scene_analyzer.create_cosplay_session(
+                    analysis,
+                    target_language=st.session_state.target_language,
+                    native_language=st.session_state.native_language,
+                    difficulty=st.session_state.difficulty_level,
+                    support_mode=st.session_state.support_mode,
+                )
+                greeting = coser.greet()
+                st.session_state.messages.append({"role": "assistant", "content": greeting})
+                st.session_state.coser = coser
             st.rerun()
         except Exception as e:
             st.error(f"分析失败: {e}")
@@ -70,7 +74,8 @@ def run_chat(vlm_provider):
                 st.balloons()
                 st.success("恭喜！你可以尝试去现实中对话了！")
             for msg in st.session_state.messages:
-                with st.chat_message(msg["role"]):
+                avatar = st.session_state.user_avatar if msg.get("role") == "user" else st.session_state.assistant_avatar
+                with st.chat_message(msg["role"], avatar=avatar):
                     st.write(msg["content"])
                     if msg.get("audio_b64"):
                         if msg.get("role") == "user":
@@ -141,12 +146,12 @@ def run_chat(vlm_provider):
             user_input = st.session_state.get("pending_user_input")
             try:
                 st.session_state.messages.append({"role": "user", "content": user_input, "audio_b64": current_audio_b64})
-                with st.chat_message("user"):
+                with st.chat_message("user", avatar=st.session_state.user_avatar):
                     st.write(user_input)
                     if current_audio_b64:
                         st.markdown(f"<audio controls src='data:audio/wav;base64,{current_audio_b64}'></audio>", unsafe_allow_html=True)
                 from utils.tts import generate_audio
-                with st.chat_message("assistant"):
+                with st.chat_message("assistant", avatar=st.session_state.assistant_avatar):
                     thinking = st.empty()
                     thinking.markdown("正在思考…")
                     stream = st.session_state.coser.chat_stream(user_input)
