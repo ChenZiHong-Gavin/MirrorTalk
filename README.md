@@ -66,4 +66,5 @@ python -m streamlit run app.py --server.port 8502
   - 灵活硬件组合：支持 Apple 电脑与 Nvidia 主机异构组网，低成本运行大模型
 
 **需要注意的是**
-当前 parallax 不支持 VLM, TTS 和 STT模型，所以可以使用其它部署方式替代， parallax 可以用来部署角色扮演的 LLM。
+
+当前 parallax 不支持 VLM, TTS 和 STT模型，可以使用其它部署方式替代， parallax 可以用来部署用于角色扮演的 LLM。
